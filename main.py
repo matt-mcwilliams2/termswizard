@@ -42,6 +42,24 @@ BASE_URL = os.getenv("BASE_URL", "https://termswizard.mattmcwilliams.com")
 @app.on_event("startup")
 def startup():
     init_db()
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    print(f"ADMIN_EMAIL={admin_email!r}")
+    if admin_email and admin_password:
+        try:
+            with get_db_context() as conn:
+                existing = conn.execute(
+                    "SELECT id FROM users WHERE email = ?", (admin_email,)
+                ).fetchone()
+                print(f"User already exists: {existing is not None}")
+                if not existing:
+                    conn.execute(
+                        "INSERT INTO users (email, password_hash, is_admin) VALUES (?, ?, 1)",
+                        (admin_email, hash_password(admin_password)),
+                    )
+                    print("Admin user created")
+        except Exception as e:
+            print(f"Admin creation error: {e}")
 
 
 # ──────────────────────────────────────
