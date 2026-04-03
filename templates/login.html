@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Affiliate Terms Wizard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Affiliate Terms Wizard" class="login-logo">
+            <h1>Welcome Back</h1>
+            <p>Sign in to create your affiliate terms</p>
+
+            <div class="error-message" id="errorMsg"></div>
+            <div class="success-message" id="successMsg"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Your password" required>
+                </div>
+                <button type="submit" class="btn btn-gold" style="width:100%">Sign In</button>
+            </form>
+
+            <a href="#" class="forgot-link" id="forgotLink">Forgot your password?</a>
+
+            <!-- Reset form (hidden by default) -->
+            <form id="resetForm" style="display:none; margin-top: 24px;">
+                <div class="form-group">
+                    <label for="resetEmail">Enter your email to receive a reset link</label>
+                    <input type="email" id="resetEmail" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <button type="submit" class="btn btn-purple" style="width:100%">Send Reset Link</button>
+                <a href="#" class="forgot-link" id="backToLogin">Back to login</a>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>This is not legal advice. Affiliate Terms Wizard is a tool for drafting and reviewing affiliate program agreements. For legal guidance specific to your business, please consult a licensed attorney.</p>
+    </footer>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const resetForm = document.getElementById('resetForm');
+        const forgotLink = document.getElementById('forgotLink');
+        const backToLogin = document.getElementById('backToLogin');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            forgotLink.style.display = 'none';
+            resetForm.style.display = 'block';
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+        });
+
+        backToLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'block';
+            forgotLink.style.display = 'block';
+            resetForm.style.display = 'none';
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.style.display = 'none';
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                }),
+            });
+
+            if (res.ok) {
+                window.location.href = '/app';
+            } else {
+                const data = await res.json();
+                errorMsg.textContent = data.detail || 'Login failed';
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.style.display = 'none';
+
+            const res = await fetch('/api/request-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('resetEmail').value,
+                }),
+            });
+
+            const data = await res.json();
+            successMsg.textContent = data.message;
+            successMsg.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

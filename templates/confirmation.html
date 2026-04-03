@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed - Affiliate Terms Wizard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: #000;
+      min-height: 100vh;
+      color: #fff;
+    }
+    .header {
+      background: #000;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #39125a;
+    }
+    .header img { width: 120px; }
+    .header .support { color: rgba(255,255,255,0.8); font-size: 14px; text-align: right; }
+    .header .support b { color: #fff; }
+
+    .content {
+      max-width: 600px;
+      margin: 80px auto;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .checkmark {
+      font-size: 72px;
+      color: #e8c14f;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #e8c14f;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 18px;
+      color: #ddd;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .email-highlight {
+      color: #f5db7f;
+      font-weight: 600;
+    }
+
+    .login-btn {
+      display: inline-block;
+      margin-top: 40px;
+      background: #692a9d;
+      color: #fff;
+      padding: 16px 40px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 4px;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+    .login-btn:hover { background: #53217d; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Affiliate Terms Wizard">
+  <div class="support">Need help? Contact Support: <b>support@mattmcwilliams.com</b></div>
+</div>
+
+<div class="content">
+  <div class="checkmark">✓</div>
+  <h1>You're in! Check your email.</h1>
+  <p>Your login credentials for Affiliate Terms Wizard have been sent to</p>
+  <p class="email-highlight">{{ email }}</p>
+  <p style="margin-top: 15px; font-size: 15px; color: #aaa;">Check your inbox and spam folder just in case.</p>
+  <a href="/login" class="login-btn">Go to Login</a>
+</div>
+
+</body>
+</html>

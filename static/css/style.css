@@ -1,0 +1,694 @@
+/* ─── Base ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --black: #000000;
+    --purple: #39125a;
+    --purple-light: #4e1a7a;
+    --purple-dark: #2a0d43;
+    --gold: #e8c14f;
+    --gold-light: #f5db7f;
+    --gold-dim: rgba(232, 193, 79, 0.15);
+    --text: #f0f0f0;
+    --text-muted: #999;
+    --bg: #000000;
+    --bg-card: #111;
+    --bg-input: #1a1a1a;
+    --border: #333;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+a {
+    color: var(--gold);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--gold-light);
+}
+
+/* ─── Header ─── */
+.header {
+    background: var(--purple);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--gold);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-logo {
+    height: 40px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.nav-link {
+    color: var(--gold-light);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: #fff;
+}
+
+/* ─── Buttons ─── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: #000;
+}
+
+.btn-gold:hover {
+    background: var(--gold-light);
+}
+
+.btn-purple {
+    background: var(--purple);
+    color: #fff;
+    border: 1px solid var(--gold);
+}
+
+.btn-purple:hover {
+    background: var(--purple-light);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+}
+
+.btn-outline:hover {
+    background: var(--gold-dim);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ─── Forms ─── */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gold);
+    margin-bottom: 6px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+/* ─── Login Page ─── */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.login-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 32px;
+    max-width: 220px;
+}
+
+.login-card h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--gold);
+}
+
+.login-card p {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+}
+
+.error-message {
+    background: rgba(220, 53, 69, 0.15);
+    color: #ff6b6b;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+}
+
+.success-message {
+    background: rgba(40, 167, 69, 0.15);
+    color: #51cf66;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+}
+
+.forgot-link {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* ─── Chat Interface ─── */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 66px);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.chat-bubble-user {
+    align-self: flex-end;
+    background: var(--gold);
+    color: #000;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble-assistant {
+    align-self: flex-start;
+    background: var(--purple-dark);
+    color: var(--text);
+    border: 1px solid var(--purple-light);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-area {
+    padding: 16px 24px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+}
+
+.chat-sticky-actions {
+    display: none;
+    padding: 8px 24px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    gap: 12px;
+    justify-content: center;
+}
+
+.chat-sticky-actions.visible {
+    display: flex;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 14px 18px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    resize: none;
+    min-height: 48px;
+    max-height: 120px;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.chat-send-btn {
+    padding: 0 20px;
+    border-radius: 12px;
+}
+
+/* ─── Start Options ─── */
+.start-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 24px;
+    padding: 48px 24px;
+}
+
+.start-options h2 {
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.start-options p {
+    color: var(--text-muted);
+    max-width: 500px;
+    text-align: center;
+}
+
+.start-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.start-btn {
+    padding: 20px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    min-width: 200px;
+}
+
+/* ─── Upload Section ─── */
+.upload-section {
+    display: none;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.upload-section h3 {
+    color: var(--gold);
+    margin-bottom: 16px;
+}
+
+.upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.upload-area:hover {
+    border-color: var(--gold);
+}
+
+.upload-area input[type="file"] {
+    display: none;
+}
+
+.upload-area p {
+    margin-bottom: 8px;
+}
+
+.upload-divider {
+    color: var(--text-muted);
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+.paste-area {
+    width: 100%;
+    min-height: 150px;
+    padding: 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 16px;
+}
+
+.paste-area:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+/* ─── Limit Banner ─── */
+.limit-banner {
+    display: none;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 16px 24px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 12px;
+    max-width: 500px;
+}
+
+/* ─── Agreements List ─── */
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.page-container h1 {
+    font-size: 28px;
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+
+.page-container .subtitle {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+}
+
+.agreement-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+}
+
+.agreement-card:hover {
+    border-color: var(--purple-light);
+}
+
+.agreement-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.agreement-info .date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--text-muted);
+}
+
+.empty-state h3 {
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+
+/* ─── Account Page ─── */
+.account-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.account-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.account-card h2 {
+    font-size: 18px;
+    color: var(--gold);
+    margin-bottom: 20px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--gold);
+}
+
+/* ─── Admin Page ─── */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.admin-table th {
+    background: var(--purple-dark);
+    color: var(--gold);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.admin-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.admin-table tr:hover td {
+    background: rgba(57, 18, 90, 0.1);
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: var(--gold);
+    color: #000;
+}
+
+.badge-user {
+    background: var(--purple);
+    color: var(--gold-light);
+}
+
+/* ─── Footer ─── */
+.site-footer {
+    background: var(--purple-dark);
+    padding: 16px 24px;
+    text-align: center;
+}
+
+.site-footer p {
+    color: var(--gold);
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* ─── Loading / Typing indicator ─── */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 18px;
+    background: var(--purple-dark);
+    border: 1px solid var(--purple-light);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 16px;
+    }
+
+    .header-logo {
+        height: 32px;
+    }
+
+    .nav-link {
+        font-size: 12px;
+    }
+
+    .chat-bubble {
+        max-width: 90%;
+    }
+
+    .chat-messages {
+        padding: 16px;
+    }
+
+    .chat-input-area {
+        padding: 12px 16px;
+    }
+
+    .account-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .start-btn {
+        min-width: 160px;
+        padding: 16px 24px;
+        font-size: 14px;
+    }
+
+    .agreement-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .page-container h1 {
+        font-size: 22px;
+    }
+
+    .login-card {
+        padding: 32px 24px;
+    }
+
+    .admin-table {
+        font-size: 13px;
+    }
+
+    .admin-table th, .admin-table td {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-right {
+        gap: 10px;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+}

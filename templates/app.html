@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Terms Wizard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Logo" class="header-logo">
+        </div>
+        <div class="header-right">
+            <a href="/agreements" class="nav-link">My Agreements</a>
+            <a href="/account" class="nav-link">Account</a>
+            <button class="btn btn-gold btn-sm" id="newAgreementBtn" style="display:none">New Agreement</button>
+            <a href="#" class="nav-link" id="logoutBtn">Logout</a>
+        </div>
+    </div>
+
+    <!-- Chat container -->
+    <div class="chat-container" id="chatContainer">
+        <!-- Start Options (shown initially) -->
+        <div class="start-options" id="startOptions">
+            <h2>What would you like to do?</h2>
+            <p>Create a new affiliate agreement from scratch, or upload an existing one for review and improvement.</p>
+
+            <div class="limit-banner" id="limitBanner"></div>
+
+            <div class="start-buttons" id="startButtons">
+                <button class="btn btn-gold start-btn" id="createNewBtn">Create New Agreement</button>
+                <button class="btn btn-purple start-btn" id="reviewExistingBtn">Review & Improve Existing Agreement</button>
+            </div>
+
+            <!-- Upload section -->
+            <div class="upload-section" id="uploadSection">
+                <h3>Upload Your Existing Agreement</h3>
+                <div class="upload-area" id="uploadArea">
+                    <p>Click or drag a file here</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Accepts .docx and .pdf</p>
+                    <input type="file" id="fileInput" accept=".docx,.pdf">
+                </div>
+                <div class="upload-divider">- or paste text below -</div>
+                <textarea class="paste-area" id="pasteArea" placeholder="Paste your existing agreement text here..."></textarea>
+                <button class="btn btn-gold" id="startWithExistingBtn">Start Review</button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages" style="display:none"></div>
+
+        <!-- Sticky action buttons (shown when agreement is complete) -->
+        <div class="chat-sticky-actions" id="stickyActions">
+            <button class="btn btn-gold" id="downloadDocBtn">Download Word Doc</button>
+            <button class="btn btn-outline" id="copyTextBtn">Copy Agreement Text</button>
+            <button class="btn btn-purple" id="startNewBtn">Start New Agreement</button>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area" id="chatInputArea" style="display:none">
+            <div class="chat-input-wrapper">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your answer..." rows="1"></textarea>
+                <button class="btn btn-gold chat-send-btn" id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>This is not legal advice. Affiliate Terms Wizard is a tool for drafting and reviewing affiliate program agreements. For legal guidance specific to your business, please consult a licensed attorney.</p>
+    </footer>
+
+    <script>
+        let conversationId = null;
+        let existingAgreementText = '';
+        let agreementComplete = false;
+        let lastAgreementText = '';
+
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatInputArea = document.getElementById('chatInputArea');
+        const startOptions = document.getElementById('startOptions');
+        const stickyActions = document.getElementById('stickyActions');
+        const limitBanner = document.getElementById('limitBanner');
+        const uploadSection = document.getElementById('uploadSection');
+        const startButtons = document.getElementById('startButtons');
+
+        // Check for conversation resume from query param
+        async function checkResume() {
+            const params = new URLSearchParams(window.location.search);
+            const convId = params.get('conversation');
+            if (!convId) return;
+
+            try {
+                const res = await fetch(`/api/conversations/${convId}`);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                conversationId = data.id;
+                startOptions.style.display = 'none';
+                chatMessages.style.display = 'flex';
+                chatInputArea.style.display = 'block';
+                document.getElementById('newAgreementBtn').style.display = 'inline-flex';
+
+                // Render existing messages (skip the first "Let's get started" user message)
+                for (let i = 0; i < data.messages.length; i++) {
+                    const msg = data.messages[i];
+                    if (i === 0 && msg.role === 'user') continue; // skip trigger message
+                    addBubble(msg.content, msg.role);
+                }
+
+                if (data.status === 'completed') {
+                    agreementComplete = true;
+                    // Find last assistant message for download
+                    for (let i = data.messages.length - 1; i >= 0; i--) {
+                        if (data.messages[i].role === 'assistant') {
+                            lastAgreementText = data.messages[i].content.trim();
+                            break;
+                        }
+                    }
+                    stickyActions.classList.add('visible');
+                    chatInput.disabled = true;
+                    document.getElementById('sendBtn').disabled = true;
+                }
+            } catch (e) {
+                // Ignore and show normal start screen
+            }
+        }
+        checkResume();
+
+        // Check limits on load
+        async function checkLimits() {
+            const res = await fetch('/api/usage');
+            if (!res.ok) { window.location.href = '/login'; return; }
+            const data = await res.json();
+
+            if (data.lifetime_used >= data.lifetime_max) {
+                limitBanner.textContent = "You've used all 20 of your lifetime agreements. Email matt@mattmcwilliams.com to request more access.";
+                limitBanner.style.display = 'block';
+                startButtons.style.display = 'none';
+                return false;
+            }
+            if (data.daily_used >= data.daily_max) {
+                limitBanner.textContent = "You've reached your limit for today. Come back tomorrow!";
+                limitBanner.style.display = 'block';
+                startButtons.style.display = 'none';
+                return false;
+            }
+            return true;
+        }
+        checkLimits();
+
+        // Create New
+        document.getElementById('createNewBtn').addEventListener('click', () => {
+            startChat();
+        });
+
+        // Review Existing
+        document.getElementById('reviewExistingBtn').addEventListener('click', () => {
+            startButtons.style.display = 'none';
+            uploadSection.style.display = 'block';
+        });
+
+        // Upload area click
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        // File upload
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('uploadArea').innerHTML = '<p>Uploading...</p>';
+
+            const res = await fetch('/api/upload-agreement', { method: 'POST', body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('pasteArea').value = data.text;
+                document.getElementById('uploadArea').innerHTML = '<p style="color: var(--gold);">File uploaded successfully!</p>';
+            } else {
+                const data = await res.json();
+                document.getElementById('uploadArea').innerHTML = `<p style="color: #ff6b6b;">${data.detail || 'Upload failed'}</p>`;
+            }
+        });
+
+        // Start with existing
+        document.getElementById('startWithExistingBtn').addEventListener('click', () => {
+            existingAgreementText = document.getElementById('pasteArea').value.trim();
+            if (!existingAgreementText) {
+                alert('Please upload a file or paste your existing agreement text.');
+                return;
+            }
+            startChat();
+        });
+
+        // Start chat
+        async function startChat() {
+            const canProceed = await checkLimits();
+            if (!canProceed) return;
+
+            startOptions.style.display = 'none';
+            chatMessages.style.display = 'flex';
+            chatInputArea.style.display = 'block';
+            document.getElementById('newAgreementBtn').style.display = 'inline-flex';
+
+            // Send opening message
+            sendMessage("Let's get started.", true);
+        }
+
+        // Send message
+        async function sendMessage(text, isFirst = false) {
+            if (!text.trim()) return;
+
+            // Show user bubble (unless it's the initial hidden trigger)
+            if (!isFirst) {
+                addBubble(text, 'user');
+            }
+
+            chatInput.value = '';
+            chatInput.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            // Show typing indicator
+            const typingEl = showTyping();
+
+            try {
+                const body = {
+                    message: text,
+                    conversation_id: conversationId,
+                };
+                if (existingAgreementText && !conversationId) {
+                    body.existing_agreement_text = existingAgreementText;
+                }
+
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+
+                removeTyping(typingEl);
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    addBubble('Something went wrong. Please try again.', 'assistant');
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.limit_reached) {
+                    addBubble(data.error, 'assistant');
+                    chatInput.disabled = true;
+                    return;
+                }
+
+                conversationId = data.conversation_id;
+                addBubble(data.reply, 'assistant');
+
+                if (data.agreement_complete) {
+                    agreementComplete = true;
+                    lastAgreementText = data.reply;
+                    stickyActions.classList.add('visible');
+                    chatInput.disabled = true;
+                    document.getElementById('sendBtn').disabled = true;
+                    return;
+                }
+            } catch (err) {
+                removeTyping(typingEl);
+                addBubble('Connection error. Please try again.', 'assistant');
+            }
+
+            chatInput.disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            chatInput.focus();
+        }
+
+        function addBubble(text, role) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble chat-bubble-${role}`;
+            bubble.textContent = text.replace(/\*\*/g, '');
+            chatMessages.appendChild(bubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const el = document.createElement('div');
+            el.className = 'typing-indicator';
+            el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            chatMessages.appendChild(el);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return el;
+        }
+
+        function removeTyping(el) {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        }
+
+        // Send button
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            sendMessage(chatInput.value);
+        });
+
+        // Enter to send
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(chatInput.value);
+            }
+        });
+
+        // Auto-resize input
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        });
+
+        // Download Word Doc
+        document.getElementById('downloadDocBtn').addEventListener('click', async () => {
+            const res = await fetch('/api/doc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: lastAgreementText }),
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'affiliate-terms.docx';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Copy Agreement Text
+        document.getElementById('copyTextBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('copyTextBtn');
+            try {
+                await navigator.clipboard.writeText(lastAgreementText);
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy Agreement Text'; }, 2000);
+            } catch (e) {
+                btn.textContent = 'Failed to copy';
+                setTimeout(() => { btn.textContent = 'Copy Agreement Text'; }, 2000);
+            }
+        });
+
+        // New Agreement buttons
+        document.getElementById('newAgreementBtn').addEventListener('click', resetChat);
+        document.getElementById('startNewBtn').addEventListener('click', resetChat);
+
+        function resetChat() {
+            conversationId = null;
+            existingAgreementText = '';
+            agreementComplete = false;
+            lastAgreementText = '';
+            chatMessages.innerHTML = '';
+            chatMessages.style.display = 'none';
+            chatInputArea.style.display = 'none';
+            stickyActions.classList.remove('visible');
+            startOptions.style.display = 'flex';
+            startButtons.style.display = 'flex';
+            uploadSection.style.display = 'none';
+            limitBanner.style.display = 'none';
+            document.getElementById('newAgreementBtn').style.display = 'none';
+            document.getElementById('pasteArea').value = '';
+            document.getElementById('uploadArea').innerHTML = '<p>Click or drag a file here</p><p style="font-size: 12px; color: var(--text-muted);">Accepts .docx and .pdf</p><input type="file" id="fileInput" accept=".docx,.pdf">';
+            chatInput.disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            checkLimits();
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+    </script>
+</body>
+</html>

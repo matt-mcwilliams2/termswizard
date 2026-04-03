@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Agreements - Affiliate Terms Wizard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Logo" class="header-logo">
+        </div>
+        <div class="header-right">
+            <a href="/app" class="nav-link">New Agreement</a>
+            <a href="/account" class="nav-link">Account</a>
+            <a href="#" class="nav-link" id="logoutBtn">Logout</a>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <h1>My Agreements</h1>
+        <p class="subtitle">All your completed affiliate terms and conditions</p>
+
+        <div id="agreementsList"></div>
+    </div>
+
+    <footer class="site-footer">
+        <p>This is not legal advice. Affiliate Terms Wizard is a tool for drafting and reviewing affiliate program agreements. For legal guidance specific to your business, please consult a licensed attorney.</p>
+    </footer>
+
+    <script>
+        async function loadAgreements() {
+            const res = await fetch('/api/agreements');
+            if (!res.ok) {
+                if (res.status === 401) { window.location.href = '/login'; return; }
+                return;
+            }
+
+            const agreements = await res.json();
+            const container = document.getElementById('agreementsList');
+
+            if (agreements.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No agreements yet</h3>
+                        <p>Create your first affiliate agreement to see it here.</p>
+                        <a href="/app" class="btn btn-gold" style="margin-top: 16px;">Create Agreement</a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = agreements.map(a => `
+                <div class="agreement-card">
+                    <div class="agreement-info">
+                        <h3>${escapeHtml(a.company_name)}</h3>
+                        <span class="date">${new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        ${a.conversation_id ? `<a href="/app?conversation=${a.conversation_id}" class="btn btn-outline btn-sm">Continue</a>` : ''}
+                        <button class="btn btn-gold btn-sm" onclick="downloadDoc(${a.id})">Download Word Doc</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function downloadDoc(id) {
+            const res = await fetch(`/api/agreements/${id}/doc`);
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'affiliate-terms.docx';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        loadAgreements();
+    </script>
+</body>
+</html>

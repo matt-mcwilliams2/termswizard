@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Affiliate Terms Wizard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Logo" class="header-logo">
+        </div>
+        <div class="header-right">
+            <a href="/app" class="nav-link">New Agreement</a>
+            <a href="/agreements" class="nav-link">My Agreements</a>
+            <a href="#" class="nav-link" id="logoutBtn">Logout</a>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <h1>Account Settings</h1>
+        <p class="subtitle">Manage your account and view usage</p>
+
+        <div class="account-grid">
+            <!-- Usage Stats -->
+            <div class="account-card">
+                <h2>Usage</h2>
+                <div class="stat-row">
+                    <span class="stat-label">Email</span>
+                    <span class="stat-value" id="userEmail">-</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Today's Usage</span>
+                    <span class="stat-value"><span id="dailyUsed">0</span> of <span id="dailyMax">3</span></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lifetime Usage</span>
+                    <span class="stat-value"><span id="lifetimeUsed">0</span> of <span id="lifetimeMax">20</span></span>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="account-card">
+                <h2>Change Password</h2>
+                <div class="error-message" id="errorMsg"></div>
+                <div class="success-message" id="successMsg"></div>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="form-input" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" class="form-input" required minlength="8">
+                    </div>
+                    <button type="submit" class="btn btn-gold">Update Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>This is not legal advice. Affiliate Terms Wizard is a tool for drafting and reviewing affiliate program agreements. For legal guidance specific to your business, please consult a licensed attorney.</p>
+    </footer>
+
+    <script>
+        async function loadUsage() {
+            const res = await fetch('/api/usage');
+            if (!res.ok) {
+                if (res.status === 401) { window.location.href = '/login'; return; }
+                return;
+            }
+            const data = await res.json();
+            document.getElementById('userEmail').textContent = data.email;
+            document.getElementById('dailyUsed').textContent = data.daily_used;
+            document.getElementById('dailyMax').textContent = data.daily_max;
+            document.getElementById('lifetimeUsed').textContent = data.lifetime_used;
+            document.getElementById('lifetimeMax').textContent = data.lifetime_max;
+        }
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            if (newPass !== confirmPass) {
+                errorMsg.textContent = 'New passwords do not match.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const res = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_password: document.getElementById('currentPassword').value,
+                    new_password: newPass,
+                }),
+            });
+
+            if (res.ok) {
+                successMsg.textContent = 'Password updated successfully!';
+                successMsg.style.display = 'block';
+                document.getElementById('passwordForm').reset();
+            } else {
+                const data = await res.json();
+                errorMsg.textContent = data.detail || 'Failed to update password.';
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        loadUsage();
+    </script>
+</body>
+</html>

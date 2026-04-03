@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Affiliate Terms Wizard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="https://www.mattmcwilliams.com/wp-content/uploads/2026/03/affiliate-terms-wizard-logo-1.png" alt="Logo" class="header-logo">
+        </div>
+        <div class="header-right">
+            <a href="/app" class="nav-link">App</a>
+            <a href="/agreements" class="nav-link">My Agreements</a>
+            <a href="/account" class="nav-link">Account</a>
+            <a href="#" class="nav-link" id="logoutBtn">Logout</a>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <h1>Admin Dashboard</h1>
+        <p class="subtitle">All registered users</p>
+
+        <div style="overflow-x: auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Agreements</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr><td colspan="5" style="text-align:center; padding: 32px;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>This is not legal advice. Affiliate Terms Wizard is a tool for drafting and reviewing affiliate program agreements. For legal guidance specific to your business, please consult a licensed attorney.</p>
+    </footer>
+
+    <script>
+        async function loadUsers() {
+            const res = await fetch('/api/admin/users');
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/login';
+                    return;
+                }
+                return;
+            }
+
+            const users = await res.json();
+            const tbody = document.getElementById('usersTableBody');
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 32px;">No users found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td><span class="badge ${u.is_admin ? 'badge-admin' : 'badge-user'}">${u.is_admin ? 'Admin' : 'User'}</span></td>
+                    <td>${u.agreement_count}</td>
+                    <td>${new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>
