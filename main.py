@@ -117,6 +117,15 @@ async def admin_page(request: Request):
     return templates.TemplateResponse("admin.html", {"request": request})
 
 
+@app.get("/test-email")
+async def test_email():
+    try:
+        send_welcome_email("matt@mattmcwilliams.com", "test-password-123")
+        return {"result": "success"}
+    except Exception as e:
+        return {"result": "error", "detail": str(e)}
+
+
 @app.get("/order", response_class=HTMLResponse)
 async def order_page(request: Request):
     return templates.TemplateResponse("order.html", {
