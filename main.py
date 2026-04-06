@@ -590,18 +590,24 @@ def _create_user_account(email: str, first_name: str = "", last_name: str = ""):
     except Exception as e:
         print(f"Failed to send welcome email to {email}: {e}")
 
-    # Tag subscriber in Kit (ConvertKit)
-    kit_api_key = os.getenv("KIT_API_KEY")
+    # Create and tag subscriber in Kit (ConvertKit)
+    kit_api_secret = os.getenv("KIT_API_SECRET")
     kit_tag_id = os.getenv("KIT_TAG_ID")
-    if kit_api_key and kit_tag_id:
+    if kit_api_secret and kit_tag_id:
+        kit_headers = {"X-Kit-Api-Key": kit_api_secret, "Content-Type": "application/json"}
         try:
             http_requests.post(
-                f"https://api.kit.com/v4/tags/{kit_tag_id}/subscribe",
-                headers={"Authorization": f"Bearer {kit_api_key}"},
-                json={"email": email},
+                "https://api.kit.com/v4/subscribers",
+                headers=kit_headers,
+                json={"email_address": email, "first_name": first_name},
+            )
+            http_requests.post(
+                f"https://api.kit.com/v4/tags/{kit_tag_id}/subscribers",
+                headers=kit_headers,
+                json={"email_address": email},
             )
         except Exception as e:
-            print(f"Failed to tag {email} in Kit: {e}")
+            print(f"Failed to create/tag {email} in Kit: {e}")
 
 
 @app.post("/webhook/stripe")
