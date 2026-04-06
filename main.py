@@ -25,7 +25,7 @@ from auth import (
     create_reset_token,
     verify_reset_token,
 )
-from email_service import send_welcome_email, send_password_reset_email
+from email_service import send_welcome_email, send_password_reset_email, send_sale_notification
 from claude_service import chat
 from doc_service import generate_docx
 
@@ -590,22 +590,32 @@ def _create_user_account(email: str, first_name: str = "", last_name: str = ""):
     except Exception as e:
         print(f"Failed to send welcome email to {email}: {e}")
 
+    try:
+        send_sale_notification(email, first_name, last_name)
+    except Exception as e:
+        print(f"Failed to send sale notification for {email}: {e}")
+
     # Create and tag subscriber in Kit (ConvertKit)
     kit_api_secret = os.getenv("KIT_API_SECRET")
     kit_tag_id = os.getenv("KIT_TAG_ID")
     if kit_api_secret and kit_tag_id:
+        print(f"Kit API: email={email}, first_name={first_name}, api_key={kit_api_secret[:5]}..., tag_id={kit_tag_id}")
         kit_headers = {"X-Kit-Api-Key": kit_api_secret, "Content-Type": "application/json"}
         try:
-            http_requests.post(
+            print("Kit API: Creating subscriber...")
+            r1 = http_requests.post(
                 "https://api.kit.com/v4/subscribers",
                 headers=kit_headers,
                 json={"email_address": email, "first_name": first_name},
             )
-            http_requests.post(
+            print(f"Kit API: Create subscriber response: {r1.status_code} {r1.text}")
+            print("Kit API: Tagging subscriber...")
+            r2 = http_requests.post(
                 f"https://api.kit.com/v4/tags/{kit_tag_id}/subscribers",
                 headers=kit_headers,
                 json={"email_address": email},
             )
+            print(f"Kit API: Tag subscriber response: {r2.status_code} {r2.text}")
         except Exception as e:
             print(f"Failed to create/tag {email} in Kit: {e}")
 

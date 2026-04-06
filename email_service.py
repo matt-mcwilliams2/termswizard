@@ -64,6 +64,20 @@ def send_welcome_email(email: str, password: str):
     send_email(email, subject, html_body)
 
 
+def send_sale_notification(email: str, first_name: str, last_name: str):
+    from datetime import datetime, timezone
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    html_body = f"""<pre>
+New sale for Affiliate Terms Wizard
+
+Email: {email}
+First Name: {first_name}
+Last Name: {last_name}
+Time: {timestamp}
+</pre>"""
+    send_email("matt@mattmcwilliams.com", "New Affiliate Terms Wizard Sale", html_body)
+
+
 def send_password_reset_email(email: str, reset_url: str):
     subject = "Reset your Affiliate Terms Wizard password"
 
