@@ -591,13 +591,14 @@ def _create_user_account(email: str, first_name: str = "", last_name: str = ""):
         print(f"Failed to send welcome email to {email}: {e}")
 
     # Tag subscriber in Kit (ConvertKit)
-    kit_api_secret = os.getenv("KIT_API_SECRET")
+    kit_api_key = os.getenv("KIT_API_KEY")
     kit_tag_id = os.getenv("KIT_TAG_ID")
-    if kit_api_secret and kit_tag_id:
+    if kit_api_key and kit_tag_id:
         try:
             http_requests.post(
-                f"https://api.convertkit.com/v3/tags/{kit_tag_id}/subscribe",
-                json={"api_secret": kit_api_secret, "email": email},
+                f"https://api.kit.com/v4/tags/{kit_tag_id}/subscribe",
+                headers={"Authorization": f"Bearer {kit_api_key}"},
+                json={"email": email},
             )
         except Exception as e:
             print(f"Failed to tag {email} in Kit: {e}")
