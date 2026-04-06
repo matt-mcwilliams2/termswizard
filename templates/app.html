@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Affiliate Terms Wizard</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="https://www.mattmcwilliams.com/wp-content/uploads/2026/04/affiliate_terms_wizard_favicon.png">
 </head>
 <body>
     <!-- Header -->
@@ -136,7 +137,7 @@
             const data = await res.json();
 
             if (data.lifetime_used >= data.lifetime_max) {
-                limitBanner.textContent = "You've used all 20 of your lifetime agreements. Email matt@mattmcwilliams.com to request more access.";
+                limitBanner.innerHTML = "You've used all of your lifetime agreements. <a href='/order' style='color: var(--gold); text-decoration: underline;'>Purchase more</a> or visit your Account page.";
                 limitBanner.style.display = 'block';
                 startButtons.style.display = 'none';
                 return false;

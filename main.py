@@ -2,6 +2,7 @@ import os
 import json
 import io
 import stripe
+import requests as http_requests
 from datetime import date, datetime, timezone
 from dotenv import load_dotenv
 
@@ -276,7 +277,7 @@ async def get_usage(request: Request):
     today = date.today().isoformat()
     with get_db_context() as conn:
         row = conn.execute(
-            "SELECT agreement_count FROM users WHERE id = ?", (user["user_id"],)
+            "SELECT agreement_count, lifetime_limit FROM users WHERE id = ?", (user["user_id"],)
         ).fetchone()
         daily = conn.execute(
             "SELECT count FROM daily_usage WHERE user_id = ? AND usage_date = ?",
@@ -284,7 +285,7 @@ async def get_usage(request: Request):
         ).fetchone()
     return {
         "lifetime_used": row["agreement_count"] if row else 0,
-        "lifetime_max": 20,
+        "lifetime_max": row["lifetime_limit"] if row else 20,
         "daily_used": daily["count"] if daily else 0,
         "daily_max": 3,
         "email": user["email"],
@@ -295,7 +296,7 @@ def check_limits(user_id: int) -> str | None:
     today = date.today().isoformat()
     with get_db_context() as conn:
         user_row = conn.execute(
-            "SELECT agreement_count FROM users WHERE id = ?", (user_id,)
+            "SELECT agreement_count, lifetime_limit FROM users WHERE id = ?", (user_id,)
         ).fetchone()
         daily_row = conn.execute(
             "SELECT count FROM daily_usage WHERE user_id = ? AND usage_date = ?",
@@ -303,10 +304,11 @@ def check_limits(user_id: int) -> str | None:
         ).fetchone()
 
     lifetime = user_row["agreement_count"] if user_row else 0
+    lifetime_limit = user_row["lifetime_limit"] if user_row else 20
     daily = daily_row["count"] if daily_row else 0
 
-    if lifetime >= 20:
-        return "You've used all 20 of your lifetime agreements. Email matt@mattmcwilliams.com to request more access."
+    if lifetime >= lifetime_limit:
+        return "You've used all of your lifetime agreements. Visit your Account page to purchase more."
     if daily >= 3:
         return "You've reached your limit for today. Come back tomorrow!"
     return None
@@ -563,13 +565,18 @@ async def download_agreement_doc(agreement_id: int, request: Request):
 # ──────────────────────────────────────
 
 def _create_user_account(email: str, first_name: str = "", last_name: str = ""):
-    """Create a new user account and send welcome email. No-op if user already exists."""
+    """Create a new user account and send welcome email, or add 20 to lifetime limit if user already exists."""
     with get_db_context() as conn:
         existing = conn.execute(
             "SELECT id FROM users WHERE email = ?", (email,)
         ).fetchone()
 
     if existing:
+        with get_db_context() as conn:
+            conn.execute(
+                "UPDATE users SET lifetime_limit = lifetime_limit + 20 WHERE id = ?",
+                (existing["id"],),
+            )
         return
 
     password = generate_password()
@@ -582,6 +589,18 @@ def _create_user_account(email: str, first_name: str = "", last_name: str = ""):
         send_welcome_email(email, password)
     except Exception as e:
         print(f"Failed to send welcome email to {email}: {e}")
+
+    # Tag subscriber in Kit (ConvertKit)
+    kit_api_secret = os.getenv("KIT_API_SECRET")
+    kit_tag_id = os.getenv("KIT_TAG_ID")
+    if kit_api_secret and kit_tag_id:
+        try:
+            http_requests.post(
+                f"https://api.convertkit.com/v3/tags/{kit_tag_id}/subscribe",
+                json={"api_secret": kit_api_secret, "email": email},
+            )
+        except Exception as e:
+            print(f"Failed to tag {email} in Kit: {e}")
 
 
 @app.post("/webhook/stripe")

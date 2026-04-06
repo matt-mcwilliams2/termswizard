@@ -34,6 +34,7 @@ def init_db():
                 last_name TEXT NOT NULL DEFAULT '',
                 is_admin INTEGER DEFAULT 0,
                 agreement_count INTEGER DEFAULT 0,
+                lifetime_limit INTEGER DEFAULT 20,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -77,3 +78,8 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
         """)
+
+        # Migration: add lifetime_limit column if missing
+        cols = [row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()]
+        if "lifetime_limit" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN lifetime_limit INTEGER DEFAULT 20")
