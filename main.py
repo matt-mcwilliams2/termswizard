@@ -179,6 +179,7 @@ async def create_payment_intent(data: PaymentIntentRequest):
             amount=2900,  # $29.00 in cents
             currency="usd",
             metadata={
+                "product": "terms-wizard",
                 "email": data.email,
                 "first_name": data.first_name,
                 "last_name": data.last_name,
@@ -640,6 +641,8 @@ async def stripe_webhook(request: Request):
 
     elif event["type"] == "payment_intent.succeeded":
         payment_intent = event["data"]["object"]
+        if payment_intent.get("metadata", {}).get("product") != "terms-wizard":
+            return {"status": "ignored"}
         metadata = payment_intent.get("metadata", {})
         email = metadata.get("email")
         first_name = metadata.get("first_name", "")
