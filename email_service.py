@@ -28,7 +28,7 @@ def send_welcome_email(email: str, password: str):
 
 <p>First off...huge congrats on grabbing Affiliate Terms Wizard!</p>
 
-<p>\U0001f449 <a href="https://termswizard.mattmcwilliams.com" style="color: #39125a; font-weight: bold;">Click here to access Affiliate Terms Wizard now</a></p>
+<p>\U0001f449 <a href="https://termswizard.up.railway.app/login" style="color: #39125a; font-weight: bold;">Click here to access Affiliate Terms Wizard now</a></p>
 
 <p><strong>Email:</strong> {email}<br>
 <strong>Password:</strong> {password}</p>
@@ -56,7 +56,7 @@ def send_welcome_email(email: str, password: str):
 
 <p>Start with the basics. Take your time. You can always redo them if needed.</p>
 
-<p>\U0001f449 <a href="https://termswizard.mattmcwilliams.com" style="color: #39125a; font-weight: bold;">Click here to access Affiliate Terms Wizard now</a></p>
+<p>\U0001f449 <a href="https://termswizard.up.railway.app/login" style="color: #39125a; font-weight: bold;">Click here to access Affiliate Terms Wizard now</a></p>
 
 <p>Best regards,<br>Matt</p>
 </div>"""
