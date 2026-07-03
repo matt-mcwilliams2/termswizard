@@ -178,6 +178,13 @@ class PaymentIntentRequest(BaseModel):
     last_name: str
 
 
+class AdminCreateUserRequest(BaseModel):
+    email: str
+    first_name: str = ""
+    last_name: str = ""
+    lifetime_limit: int = 20
+
+
 @app.post("/api/create-payment-intent")
 async def create_payment_intent(data: PaymentIntentRequest):
     try:
@@ -680,6 +687,32 @@ async def admin_list_users(request: Request):
         }
         for r in rows
     ]
+
+
+@app.post("/api/admin/users")
+async def admin_create_user(body: AdminCreateUserRequest, request: Request):
+    require_admin(request)
+
+    with get_db_context() as conn:
+        existing = conn.execute(
+            "SELECT id FROM users WHERE email = ?", (body.email,)
+        ).fetchone()
+    if existing:
+        raise HTTPException(status_code=409, detail="A user with that email already exists")
+
+    password = generate_password()
+    with get_db_context() as conn:
+        conn.execute(
+            "INSERT INTO users (email, password_hash, first_name, last_name, lifetime_limit) VALUES (?, ?, ?, ?, ?)",
+            (body.email, hash_password(password), body.first_name, body.last_name, body.lifetime_limit),
+        )
+
+    try:
+        send_welcome_email(body.email, password)
+    except Exception as e:
+        print(f"Failed to send welcome email to {body.email}: {e}")
+
+    return {"success": True, "email": body.email, "password": password}
 
 
 if __name__ == "__main__":

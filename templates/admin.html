@@ -22,7 +22,41 @@
 
     <div class="page-container">
         <h1>Admin Dashboard</h1>
-        <p class="subtitle">All registered users</p>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <p class="subtitle" style="margin: 0;">All registered users</p>
+            <button class="btn btn-gold" id="toggleAddUserBtn">Add User</button>
+        </div>
+
+        <div id="addUserForm" style="display: none; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <h3 style="margin-top: 0; color: var(--gold);">New User</h3>
+            <div class="error-message" id="addUserError"></div>
+            <div class="success-message" id="addUserSuccess"></div>
+            <form id="createUserForm">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="newEmail">Email *</label>
+                        <input type="email" id="newEmail" class="form-input" placeholder="user@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newLifetimeLimit">Lifetime Limit</label>
+                        <input type="number" id="newLifetimeLimit" class="form-input" value="20" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="newFirstName">First Name</label>
+                        <input type="text" id="newFirstName" class="form-input" placeholder="First name">
+                    </div>
+                    <div class="form-group">
+                        <label for="newLastName">Last Name</label>
+                        <input type="text" id="newLastName" class="form-input" placeholder="Last name">
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-gold">Create User</button>
+                    <button type="button" class="btn btn-outline" id="cancelAddUser">Cancel</button>
+                </div>
+            </form>
+        </div>
 
         <div style="overflow-x: auto;">
             <table class="admin-table">
@@ -47,6 +81,56 @@
     </footer>
 
     <script>
+        const addUserForm = document.getElementById('addUserForm');
+        const toggleBtn = document.getElementById('toggleAddUserBtn');
+        const cancelBtn = document.getElementById('cancelAddUser');
+        const createForm = document.getElementById('createUserForm');
+        const addUserError = document.getElementById('addUserError');
+        const addUserSuccess = document.getElementById('addUserSuccess');
+
+        toggleBtn.addEventListener('click', () => {
+            addUserForm.style.display = addUserForm.style.display === 'none' ? 'block' : 'none';
+            addUserError.style.display = 'none';
+            addUserSuccess.style.display = 'none';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            addUserForm.style.display = 'none';
+            createForm.reset();
+            addUserError.style.display = 'none';
+            addUserSuccess.style.display = 'none';
+        });
+
+        createForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addUserError.style.display = 'none';
+            addUserSuccess.style.display = 'none';
+
+            const res = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('newEmail').value,
+                    first_name: document.getElementById('newFirstName').value,
+                    last_name: document.getElementById('newLastName').value,
+                    lifetime_limit: parseInt(document.getElementById('newLifetimeLimit').value) || 20,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                addUserSuccess.innerHTML = `User created! Password: <strong>${escapeHtml(data.password)}</strong><br><small>A welcome email has been sent to ${escapeHtml(data.email)}.</small>`;
+                addUserSuccess.style.display = 'block';
+                createForm.reset();
+                document.getElementById('newLifetimeLimit').value = '20';
+                loadUsers();
+            } else {
+                addUserError.textContent = data.detail || 'Failed to create user';
+                addUserError.style.display = 'block';
+            }
+        });
+
         async function loadUsers() {
             const res = await fetch('/api/admin/users');
             if (!res.ok) {
