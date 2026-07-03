@@ -87,7 +87,8 @@
             });
 
             if (res.ok) {
-                window.location.href = '/app';
+                const data = await res.json();
+                window.location.href = data.is_admin ? '/admin' : '/app';
             } else {
                 const data = await res.json();
                 errorMsg.textContent = data.detail || 'Login failed';

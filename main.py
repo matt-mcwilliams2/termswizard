@@ -53,7 +53,13 @@ def startup():
                     "SELECT id FROM users WHERE email = ?", (admin_email,)
                 ).fetchone()
                 print(f"User already exists: {existing is not None}")
-                if not existing:
+                if existing:
+                    conn.execute(
+                        "UPDATE users SET is_admin = 1, password_hash = ? WHERE email = ?",
+                        (hash_password(admin_password), admin_email),
+                    )
+                    print("Existing user promoted to admin")
+                else:
                     conn.execute(
                         "INSERT INTO users (email, password_hash, is_admin) VALUES (?, ?, 1)",
                         (admin_email, hash_password(admin_password)),
