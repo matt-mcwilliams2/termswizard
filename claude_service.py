@@ -3,7 +3,7 @@ import anthropic
 import json
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-MODEL = "claude-sonnet-5"
+MODEL = "claude-sonnet-5-5"
 MAX_TOKENS = 2000
 
 SYSTEM_PROMPT = """You are Affiliate Terms Wizard, a professional and friendly assistant that helps users create affiliate program terms and conditions. You follow a strict question-by-question flow and then generate a complete agreement using the template below.
